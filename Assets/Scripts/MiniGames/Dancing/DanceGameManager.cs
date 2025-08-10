@@ -23,6 +23,8 @@ public class DanceGameManager : MonoBehaviour
     private bool isPlaying;
 
     public AudioSource MusicSource => musicSource;
+    public int Score => score;
+    public bool IsPlaying => isPlaying;
 
     private void Start()
     {
@@ -56,9 +58,18 @@ public class DanceGameManager : MonoBehaviour
 
     public void AddScore(int points)
     {
-        score += points;
-        scoreText.text = score.ToString();
+    score += points;
+    scoreText.text = score.ToString();
+
+    if (scoreText != null)
+    {
+        LeanTween.cancel(scoreText.gameObject);
+        scoreText.transform.localScale = Vector3.one; // reset
+        LeanTween.scale(scoreText.rectTransform, Vector3.one * 1.15f, 0.15f)
+            .setEasePunch();
     }
+    }
+
 
     private void EndGame()
     {
@@ -88,5 +99,15 @@ public class DanceGameManager : MonoBehaviour
             ui.UpdateStatusText(tokens > 0
                 ? $"You earned {tokens} play token{(tokens > 1 ? "s" : "")}! Use tokens to play with your duck."
                 : "No play tokens earned. Try again!");
+    }
+
+    private void ExampleMethod()
+    {
+        var danceGameManager = FindObjectOfType<DanceGameManager>();
+        if (danceGameManager != null)
+        {
+            int score = danceGameManager.Score;
+            // use score as needed
+        }
     }
 }

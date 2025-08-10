@@ -7,8 +7,18 @@ public class DanceInputHandler : MonoBehaviour
     [SerializeField] private KeyCode leftKey = KeyCode.LeftArrow;
     [SerializeField] private KeyCode rightKey = KeyCode.RightArrow;
 
+    private DanceGameManager danceGameManager;
+
+    private void Start()
+    {
+        danceGameManager = FindObjectOfType<DanceGameManager>();
+    }
+
     public void Update()
     {
+        if (danceGameManager != null && !danceGameManager.IsPlaying)
+            return;
+
         if (Input.GetKeyDown(upKey)) HitNoteWithTag("UpNote");
         if (Input.GetKeyDown(downKey)) HitNoteWithTag("DownNote");
         if (Input.GetKeyDown(leftKey)) HitNoteWithTag("LeftNote");

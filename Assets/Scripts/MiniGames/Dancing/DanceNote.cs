@@ -48,29 +48,43 @@ public class DanceNote : MonoBehaviour
     }
 
     public void TryHit()
+{
+    if (canBeHit)
     {
-        if (canBeHit)
+        float timingError = Mathf.Abs(transform.position.y - hitZoneY);
+
+        if (timingError < 0.05f) // Perfect
         {
-            float timingError = Mathf.Abs(transform.position.y - hitZoneY);
+            SpawnEffect(perfectEffectPrefab);
+            gameManager.AddScore(300);
+            FindObjectOfType<DanceNoteSpawner>()?.CameraShakeOnPerfect();
 
-            if (timingError < 0.05f)
-            {
-                SpawnEffect(perfectEffectPrefab);
-                gameManager.AddScore(300);
-            }
-            else
-            {
-                SpawnEffect(hitEffectPrefab);
-                gameManager.AddScore(100);
-            }
-
-            Destroy(gameObject);
+            LeanTween.cancel(gameObject);
+            LeanTween.scale(gameObject, Vector3.one * 1f, 0.15f).setEasePunch();
         }
-        else
+        else // Good
         {
-            SpawnEffect(missEffectPrefab);
+            SpawnEffect(hitEffectPrefab);
+            gameManager.AddScore(100);
+
+            LeanTween.cancel(gameObject);
+            LeanTween.scale(gameObject, Vector3.one * 1f, 0.15f).setEasePunch();
         }
     }
+    else // Miss
+    {
+        SpawnEffect(missEffectPrefab);
+
+        LeanTween.cancel(gameObject);
+        LeanTween.scale(gameObject, Vector3.one * 0.85f, 0.15f)
+            .setEaseInBack()
+            .setOnComplete(() => LeanTween.alpha(gameObject, 0f, 0.1f));
+
+    }
+
+    Destroy(gameObject, 0.2f);
+}
+
 
     private void SpawnEffect(GameObject effectPrefab)
     {

@@ -63,4 +63,24 @@ public class DuckAnimator : MonoBehaviour
             animator.SetBool("IsDead", true);
         }
     }
+
+    public void Run()
+    {
+        if (animator) animator.SetTrigger("Run");
+    }
+
+    public void Talk()
+    {
+        if (animator) animator.SetTrigger("Talk");
+    }
+
+    public void SetWalking(bool walking)
+    {
+        if (animator) animator.SetBool("isWalking", walking);
+    }
+
+    public void SetDirection(int dir)
+    {
+        if (animator) animator.SetInteger("direction", dir);
+    }
 }
