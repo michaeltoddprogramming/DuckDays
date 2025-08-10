@@ -52,6 +52,9 @@ public class UIManager : MonoBehaviour
     [Header("Feed Button")]
     public TextMeshProUGUI feedButtonText; // assign UI/UIPanel/Buttons/Feed/Text (TMP) in Inspector
 
+    [Header("Play Button")]
+    public TextMeshProUGUI playButtonText; // Assign UI/UIPanel/Buttons/Play/Text (TMP) in Inspector
+
     [Header("Status UI (pretty)")]
     public RectTransform statusRoot;   // assign UI/UIPanel/Status (container)
     public CanvasGroup   statusGroup;  // optional; added if missing
@@ -70,30 +73,28 @@ public class UIManager : MonoBehaviour
         feedingGame = FindFirstObjectByType<FeedingMiniGame>();
 
         WireButtons();
-
         SetupStatusUI();
+        UpdatePlayButtonState(); // <-- Add this line
     }
 
     void OnEnable()
     {
-        // Start checking for night time
-        if (!nightCheckStarted)
-        {
-            StartCoroutine(CheckNightTime());
-        }
-        
-        // Also listen to token changes if needed
         if (TokenManager.Instance != null)
+        {
             TokenManager.Instance.TokensChanged += UpdateFeedButtonState;
-
+            TokenManager.Instance.TokensChanged += UpdatePlayButtonState; // <-- Add this line
+        }
         UpdateFeedButtonState();
+        UpdatePlayButtonState();
     }
 
     void OnDisable()
     {
         if (TokenManager.Instance != null)
+        {
             TokenManager.Instance.TokensChanged -= UpdateFeedButtonState;
-
+            TokenManager.Instance.TokensChanged -= UpdatePlayButtonState; // <-- Add this line
+        }
         UnwireButtons();
     }
 
@@ -113,6 +114,11 @@ public class UIManager : MonoBehaviour
         UpdateTimeDisplay();
         UpdateSleepButton();
         UpdateFeedButtonState();
+        UpdatePlayButtonState(); // Ensure play button is also updated
+
+        // Start the night check coroutine if not already running
+        if (!nightCheckStarted)
+            StartCoroutine(CheckNightTime());
     }
     
     void SetupStatusUI()
@@ -293,6 +299,27 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    void UpdatePlayButtonState()
+    {
+        if (playButton == null) return;
+
+        bool canClick = duck != null && (GameManager.Instance == null || !GameManager.Instance.isGameOver);
+        playButton.interactable = canClick;
+
+        int tokenCount = TokenManager.Instance ? TokenManager.Instance.GetCount("play") : 0;
+
+        if (playButtonText != null)
+            playButtonText.text = tokenCount > 0 ? $"PLAY ({tokenCount})" : "EARN PLAY";
+
+        // Only update statusText if it is empty or default (not after a play)
+        if (statusText && string.IsNullOrEmpty(statusText.text))
+        {
+            statusText.text = tokenCount > 0
+                ? "Tap PLAY to spend a token"
+                : "No play tokens – playing the Dancing game will earn tokens!";
+        }
+    }
+
     void OnFeedButtonClicked()
     {
         if (duck == null || feedButton == null)
@@ -339,15 +366,32 @@ public class UIManager : MonoBehaviour
     
     void OnPlayButtonClicked()
     {
-        if (duck != null)
+        if (duck == null || playButton == null)
+            return;
+
+        int tokenCount = TokenManager.Instance != null ? TokenManager.Instance.playTokens.count : 0;
+        if (tokenCount > 0)
         {
-            duck.Play();
-            UpdateStatusText("Duck played!");
-            
-            // Highlight the affected bars
-            HighlightBar(happinessBar);
-            HighlightBar(energyBar, false); // Decreases energy
+            if (TokenManager.Instance.UseToken("play"))
+            {
+                duck.Play();
+                UpdateStatusText("Played using 1 token!");
+                HighlightBar(happinessBar);
+                HighlightBar(energyBar, false); // Decreases energy
+            }
+            else
+            {
+                UpdateStatusText("No play tokens available!");
+            }
         }
+        else
+        {
+            Debug.Log("[UIManager] Loading Dancing mini-game scene");
+            GameManager.Instance?.LoadDancingMiniGameScene();
+            UpdateStatusText("No play tokens! Play the Dancing Game to earn tokens.");
+        }
+
+        UpdatePlayButtonState();
     }
     
     void OnSleepButtonClicked()

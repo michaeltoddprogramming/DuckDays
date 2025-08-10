@@ -9,18 +9,20 @@ public class DanceInputHandler : MonoBehaviour
 
     public void Update()
     {
-        if (Input.GetKeyDown(upKey)) HitNote("UpNote");
-        if (Input.GetKeyDown(downKey)) HitNote("DownNote");
-        if (Input.GetKeyDown(leftKey)) HitNote("LeftNote");
-        if (Input.GetKeyDown(rightKey)) HitNote("RightNote");
+        if (Input.GetKeyDown(upKey)) HitNoteWithTag("UpNote");
+        if (Input.GetKeyDown(downKey)) HitNoteWithTag("DownNote");
+        if (Input.GetKeyDown(leftKey)) HitNoteWithTag("LeftNote");
+        if (Input.GetKeyDown(rightKey)) HitNoteWithTag("RightNote");
     }
 
-    private void HitNote(string noteTag)
+    private void HitNoteWithTag(string noteTag)
     {
         GameObject note = GameObject.FindWithTag(noteTag);
         if (note != null)
         {
-            note.GetComponent<DanceNote>().TryHit();
+            DanceNote danceNote = note.GetComponent<DanceNote>();
+            if (danceNote != null)
+                danceNote.TryHit();
         }
     }
 }

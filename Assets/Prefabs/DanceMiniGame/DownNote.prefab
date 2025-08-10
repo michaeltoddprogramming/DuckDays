@@ -103,6 +103,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
+  hitEffectPrefab: {fileID: 398378868562955610, guid: 2229bb4bfac519249a974524fe298924, type: 3}
+  missEffectPrefab: {fileID: 398378868562955610, guid: 2229bb4bfac519249a974524fe298924, type: 3}
+  perfectEffectPrefab: {fileID: 398378868562955610, guid: 2229bb4bfac519249a974524fe298924, type: 3}
 --- !u!50 &7021938902787480510
 Rigidbody2D:
   serializedVersion: 5

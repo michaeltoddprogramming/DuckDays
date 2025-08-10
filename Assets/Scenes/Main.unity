@@ -388,9 +388,9 @@ RectTransform:
   - {fileID: 1764428520}
   m_Father: {fileID: 366962414}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 10}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -19.31, y: 10}
   m_SizeDelta: {x: 80, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &120447267
@@ -1772,7 +1772,7 @@ MonoBehaviour:
     maxStorage: 5
   playTokens:
     name: 
-    count: 0
+    count: 5
     iconUI: {fileID: 0}
     countText: {fileID: 0}
     maxStorage: 5
@@ -3545,6 +3545,7 @@ MonoBehaviour:
   badColor: {r: 0.8, g: 0.2, b: 0.2, a: 1}
   sleepButtonText: {fileID: 964090891}
   feedButtonText: {fileID: 146076507}
+  playButtonText: {fileID: 1764428521}
   statusRoot: {fileID: 2024941284}
   statusGroup: {fileID: 2024941285}
   statusBackdrop: {fileID: 682667847}

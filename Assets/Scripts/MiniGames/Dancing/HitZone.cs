@@ -2,39 +2,35 @@ using UnityEngine;
 
 public class HitZone : MonoBehaviour
 {
-    [SerializeField] private KeyCode inputKey; // e.g. W, A, S, D
-    [SerializeField] private float hitTolerance = 0.2f; // Time window to hit
-    private GameObject arrowInZone;
+    [SerializeField] private KeyCode inputKey; 
+    [SerializeField] private float perfectWindow = 0.1f; 
+    [SerializeField] private float goodWindow = 0.25f; 
+
+    private DanceNote noteInZone;
 
     void Update()
     {
-        if (arrowInZone != null && Input.GetKeyDown(inputKey))
+        if (noteInZone != null && Input.GetKeyDown(inputKey))
         {
-            Arrow arrow = arrowInZone.GetComponent<Arrow>();
-            if (Mathf.Abs(arrow.timeToHit) <= hitTolerance)
-            {
-                arrow.Hit();
-            }
-            else
-            {
-                arrow.Miss();
-            }
+            // Let DanceNote handle the hit logic and scoring
+            noteInZone.TryHit();
+            noteInZone = null;
         }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Arrow"))
+        if (collision.GetComponent<DanceNote>() != null)
         {
-            arrowInZone = collision.gameObject;
+            noteInZone = collision.GetComponent<DanceNote>();
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.CompareTag("Arrow") && collision.gameObject == arrowInZone)
+        if (collision.GetComponent<DanceNote>() == noteInZone)
         {
-            arrowInZone = null;
+            noteInZone = null;
         }
     }
 }

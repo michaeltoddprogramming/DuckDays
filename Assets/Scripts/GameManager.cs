@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     // Scene names (must match the .unity file names in Assets/Scenes)
     public const string MainSceneName = "Main";
     public const string FeedingSceneName = "FeedingMiniGame";
+    public const string DancingSceneName = "DanceGameScene"; // Must match your .unity file name
 
     public static GameManager Instance { get; private set; }
     
@@ -213,5 +214,11 @@ public class GameManager : MonoBehaviour
     {
         isMiniGameActive = false;
         SceneManager.LoadScene(MainSceneName, LoadSceneMode.Single);
+    }
+
+    public void LoadDancingMiniGameScene()
+    {
+        isMiniGameActive = true;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(DancingSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 }
