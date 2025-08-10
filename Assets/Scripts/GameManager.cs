@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -207,18 +208,28 @@ public class GameManager : MonoBehaviour
     public void LoadFeedingMiniGameScene()
     {
         isMiniGameActive = true;
-        SceneManager.LoadScene(FeedingSceneName, LoadSceneMode.Single);
+        StartCoroutine(LoadSceneWithFade(FeedingSceneName));
     }
 
     public void ReturnToMainScene()
     {
         isMiniGameActive = false;
-        SceneManager.LoadScene(MainSceneName, LoadSceneMode.Single);
+        StartCoroutine(LoadSceneWithFade(MainSceneName));
+    }
+
+    IEnumerator LoadSceneWithFade(string sceneName)
+    {
+        if (FadeManager.Instance != null)
+            yield return FadeManager.Instance.FadeOut();
+        UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+        yield return null; // Wait one frame for scene load
+        if (FadeManager.Instance != null)
+            yield return FadeManager.Instance.FadeIn();
     }
 
     public void LoadDancingMiniGameScene()
     {
         isMiniGameActive = true;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(DancingSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        StartCoroutine(LoadSceneWithFade(DancingSceneName));
     }
 }

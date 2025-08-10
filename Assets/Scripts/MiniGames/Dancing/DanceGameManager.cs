@@ -98,7 +98,7 @@ public class DanceGameManager : MonoBehaviour
         if (ui != null)
             ui.UpdateStatusText(tokens > 0
                 ? $"You earned {tokens} play token{(tokens > 1 ? "s" : "")}! Use tokens to play with your duck."
-                : "No play tokens earned. Try again!");
+                : "No tokens earned. Try again!");
     }
 
     private void ExampleMethod()
@@ -109,5 +109,17 @@ public class DanceGameManager : MonoBehaviour
             int score = danceGameManager.Score;
             // use score as needed
         }
+    }
+
+    private IEnumerator ShowResultAfterReturn(int tokens)
+    {
+        yield return new WaitForSeconds(0.5f); // Wait for scene to load
+        var ui = FindFirstObjectByType<UIManager>();
+        if (ui != null)
+            ui.UpdateStatusText(tokens > 0
+                ? $"You earned {tokens} {("play")} token{(tokens > 1 ? "s" : "")}! Use tokens to {("play")} with your duck."
+                : "No tokens earned. Try again!");
+        // Play SFX
+        SFXManager.Instance?.PlayMiniGameEnd();
     }
 }

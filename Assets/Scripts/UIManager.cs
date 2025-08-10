@@ -64,6 +64,7 @@ public class UIManager : MonoBehaviour
     [Header("Sleep Mini-Game")]
     public SleepingMiniGame sleepMiniGame;   // Assign in inspector
     private bool nightCheckStarted = false;
+    private Coroutine nightCheckRoutine;
 
     void Awake()
     {
@@ -86,6 +87,8 @@ public class UIManager : MonoBehaviour
         }
         UpdateFeedButtonState();
         UpdatePlayButtonState();
+
+        GameManager.Instance.MiniGameStateChanged += OnMiniGameStateChanged;
     }
 
     void OnDisable()
@@ -96,6 +99,9 @@ public class UIManager : MonoBehaviour
             TokenManager.Instance.TokensChanged -= UpdatePlayButtonState; // <-- Add this line
         }
         UnwireButtons();
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.MiniGameStateChanged -= OnMiniGameStateChanged;
     }
 
     void Start()
@@ -561,5 +567,42 @@ public class UIManager : MonoBehaviour
             UpdateStatusText($"You earned {tokensEarned} feed token{(tokensEarned > 1 ? "s" : "")}! Use tokens to feed your duck.");
         else
             UpdateStatusText("No tokens earned. Try again!");
+    }
+
+    private void OnMiniGameStateChanged(bool isMiniGameActive)
+    {
+        if (isMiniGameActive)
+        {
+            // Pause night check while in mini-game
+            if (nightCheckRoutine != null)
+            {
+                StopCoroutine(nightCheckRoutine);
+                nightCheckRoutine = null;
+            }
+        }
+        else
+        {
+            // Resume night check when back in main scene
+            if (nightCheckRoutine == null)
+                nightCheckRoutine = StartCoroutine(CheckNightTime());
+
+            // Immediately sync duck sleep state to current time
+            if (background != null && duck != null)
+            {
+                bool isNightTime = (background.currentTime >= background.nightStart ||
+                                    background.currentTime < background.morningStart);
+
+                if (isNightTime && !duck.DuckAnimator.IsSleeping)
+                {
+                    duck.Sleep();
+                    if (sleepMiniGame != null)
+                        sleepMiniGame.StartSleeping();
+                }
+                else if (!isNightTime && duck.DuckAnimator.IsSleeping)
+                {
+                    duck.WakeUp();
+                }
+            }
+        }
     }
 }

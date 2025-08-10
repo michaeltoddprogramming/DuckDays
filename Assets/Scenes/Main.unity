@@ -5747,8 +5747,8 @@ MonoBehaviour:
   daySprite: {fileID: 21300000, guid: 76a0ebb6ab1c3674da98941ac46077ae, type: 3}
   eveningSprite: {fileID: 21300000, guid: 448044f5f673a7547bc129959fa9f23e, type: 3}
   nightSprite: {fileID: 21300000, guid: be307aa0ec56ea942b7722273a4f21f5, type: 3}
-  currentTime: 19
-  timeSpeed: 3000
+  currentTime: 12
+  timeSpeed: 2000
   morningStart: 6
   dayStart: 10
   eveningStart: 18

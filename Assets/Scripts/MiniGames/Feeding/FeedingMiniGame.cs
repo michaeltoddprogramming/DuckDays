@@ -214,6 +214,12 @@ public class FeedingMiniGame : MonoBehaviour
         yield return new WaitForSeconds(0.5f); // Wait for scene to load
         var ui = FindFirstObjectByType<UIManager>();
         if (ui != null)
-            ui.ShowFeedingMiniGameResult(tokens);
+            ui.UpdateStatusText(
+                tokens > 0
+                    ? $"You earned {tokens} feed token{(tokens > 1 ? "s" : "")}! Use tokens to feed your duck."
+                    : "No tokens earned. Try again!"
+            );
+        // Play SFX
+        SFXManager.Instance?.PlayMiniGameEnd();
     }
 }
