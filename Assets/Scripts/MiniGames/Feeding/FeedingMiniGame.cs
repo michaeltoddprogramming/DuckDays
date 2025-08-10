@@ -24,6 +24,18 @@ public class FeedingMiniGame : MonoBehaviour
     public float spawnRate = 1f;
     public float duckSpeed = 10f;
 
+    [Header("Audio")]
+    public AudioClip collectGoodSfx;
+    public AudioClip collectBadSfx;
+    public AudioClip walkSfx;
+    public AudioClip backgroundMusic; // Add this line
+
+    private AudioSource audioSource;
+    private AudioSource musicSource; // Add this line
+    private Animator duckAnimator;
+    private SpriteRenderer duckSpriteRenderer;
+    private float walkSfxCooldown = 0f;
+
     int score = 0;
     float timeRemaining;
     bool isPlaying = false;
@@ -50,17 +62,33 @@ public class FeedingMiniGame : MonoBehaviour
 
         if (spawnRoutine != null) StopCoroutine(spawnRoutine);
         spawnRoutine = StartCoroutine(SpawnFood());
+
+        if (duckPlayer)
+        {
+            duckAnimator = duckPlayer.GetComponent<Animator>();
+            duckSpriteRenderer = duckPlayer.GetComponent<SpriteRenderer>();
+            audioSource = duckPlayer.GetComponent<AudioSource>();
+            if (!audioSource) audioSource = duckPlayer.AddComponent<AudioSource>();
+        }
+
+        // --- Background music setup ---
+        if (backgroundMusic)
+        {
+            musicSource = gameObject.AddComponent<AudioSource>();
+            musicSource.clip = backgroundMusic;
+            musicSource.loop = true;
+            musicSource.volume = 0.5f;
+            musicSource.Play();
+        }
     }
 
     void Update()
     {
         if (!isPlaying) return;
-
         timeRemaining -= Time.deltaTime;
         if (timeSlider) timeSlider.value = timeRemaining;
         if (timeRemaining <= 0f) { EndGame(); return; }
 
-        // Horizontal input (keyboard or A/D). For touch, move toward finger x.
         if (duckPlayer)
         {
             float moveX = 0f;
@@ -71,20 +99,38 @@ public class FeedingMiniGame : MonoBehaviour
             p.x = Mathf.Clamp(p.x + moveX * duckSpeed * Time.deltaTime, -gameAreaWidth * 0.5f, gameAreaWidth * 0.5f);
             duckPlayer.transform.localPosition = p;
 
-            if (moveX != 0f)
+            // Animation and facing
+            if (duckAnimator)
             {
-                var s = duckPlayer.transform.localScale;
-                s.x = Mathf.Abs(s.x) * Mathf.Sign(moveX);
-                duckPlayer.transform.localScale = s;
+                duckAnimator.SetBool("isWalking", moveX != 0f);
+                duckAnimator.SetFloat("direction", moveX);
+            }
+            if (duckSpriteRenderer && moveX != 0f)
+            {
+                duckSpriteRenderer.flipX = moveX < 0f;
+            }
+
+            // Walk SFX (play every 0.4s while moving)
+            if (moveX != 0f && walkSfx && audioSource)
+            {
+                walkSfxCooldown -= Time.deltaTime;
+                if (walkSfxCooldown <= 0f)
+                {
+                    audioSource.PlayOneShot(walkSfx, 0.3f);
+                    walkSfxCooldown = 0.4f;
+                }
+            }
+            else
+            {
+                walkSfxCooldown = 0f;
             }
         }
     }
 
     IEnumerator SpawnFood()
     {
-        var cam = Camera.main;
-        float topY = cam ? cam.orthographicSize - 0.5f : 5f;
-        float bottomY = cam ? -cam.orthographicSize + 0.5f : -5f;
+        float topY = 3.5f;
+        float bottomY = -3.5f;
 
         while (isPlaying)
         {
@@ -92,8 +138,7 @@ public class FeedingMiniGame : MonoBehaviour
             Vector3 spawnPos = new Vector3(x, topY, 0);
 
             GameObject prefab = Random.value < 0.8f ? goodFoodPrefab : badFoodPrefab;
-            GameObject food = Instantiate(prefab, spawnArea);
-            food.transform.localPosition = spawnPos;
+            GameObject food = Instantiate(prefab, spawnPos, Quaternion.identity, spawnArea); // world position
 
             if (!food.TryGetComponent<Collider2D>(out var col)) col = food.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
@@ -102,7 +147,7 @@ public class FeedingMiniGame : MonoBehaviour
             item.game = this;
             item.isBad = (prefab == badFoodPrefab);
 
-            LeanTween.moveLocalY(food, bottomY, 2.0f).setOnComplete(() => { if (food) Destroy(food); });
+            LeanTween.moveY(food, bottomY, 2.0f).setOnComplete(() => { if (food) Destroy(food); });
 
             yield return new WaitForSeconds(1f / spawnRate);
         }
@@ -112,6 +157,13 @@ public class FeedingMiniGame : MonoBehaviour
     {
         score += isBad ? -5 : 10;
         UpdateScoreUI();
+
+        // SFX
+        if (audioSource)
+        {
+            if (isBad && collectBadSfx) audioSource.PlayOneShot(collectBadSfx, 0.7f);
+            else if (!isBad && collectGoodSfx) audioSource.PlayOneShot(collectGoodSfx, 0.7f);
+        }
 
         if (scoreText != null)
         {
@@ -144,6 +196,9 @@ public class FeedingMiniGame : MonoBehaviour
         {
             foreach (Transform t in spawnArea) Destroy(t.gameObject);
         }
+
+        // Stop background music
+        if (musicSource) musicSource.Stop();
 
         // Go back to Main
         GameManager.Instance?.ReturnToMainScene();
