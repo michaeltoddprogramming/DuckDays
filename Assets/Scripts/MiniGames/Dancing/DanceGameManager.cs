@@ -14,9 +14,15 @@ public class DanceGameManager : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float gameDuration = 30f;
 
+    [Header("Music")]
+    [SerializeField] private AudioClip backgroundMusic;
+    private AudioSource musicSource;
+
     private int score;
     private float timer;
     private bool isPlaying;
+
+    public AudioSource MusicSource => musicSource;
 
     private void Start()
     {
@@ -24,6 +30,15 @@ public class DanceGameManager : MonoBehaviour
         score = 0;
         isPlaying = true;
         resultsPanel.SetActive(false);
+
+        // Play background music
+        if (backgroundMusic)
+        {
+            musicSource = gameObject.AddComponent<AudioSource>();
+            musicSource.clip = backgroundMusic;
+            musicSource.loop = false;
+            musicSource.Play();
+        }
     }
 
     private void Update()

@@ -1,4 +1,4 @@
-using UnityEngine;
+ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System;
@@ -35,9 +35,14 @@ public class TokenManager : MonoBehaviour
     public bool UseToken(string tokenType)
     {
         var t = GetTokenByType(tokenType);
-        if (t == null || t.count <= 0) return false;
+        if (t == null || t.count <= 0)
+        {
+            SFXManager.Instance?.PlayError();
+            return false;
+        }
         t.count--;
         UpdateTokenUI();
+        SFXManager.Instance?.PlayTokenSpent();
         return true;
     }
 
@@ -48,6 +53,7 @@ public class TokenManager : MonoBehaviour
         t.count = Mathf.Min(t.count + amount, t.maxStorage);
         UpdateTokenUI();
         ShowTokenFeedback(tokenType, amount);
+        SFXManager.Instance?.PlayTokenEarned();
     }
 
     public bool HasToken(string tokenType) => GetCount(tokenType) > 0;

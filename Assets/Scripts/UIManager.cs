@@ -322,6 +322,7 @@ public class UIManager : MonoBehaviour
 
     void OnFeedButtonClicked()
     {
+        SFXManager.Instance?.PlayButton();
         if (duck == null || feedButton == null)
             return;
 
@@ -360,12 +361,14 @@ public class UIManager : MonoBehaviour
 
     void StartFeedingGame()
     {
+        SFXManager.Instance?.PlayMiniGameStart();
         Debug.Log("[UIManager] Loading Feeding mini-game scene");
         GameManager.Instance?.LoadFeedingMiniGameScene();
     }
     
     void OnPlayButtonClicked()
     {
+        SFXManager.Instance?.PlayButton();
         if (duck == null || playButton == null)
             return;
 
@@ -396,6 +399,7 @@ public class UIManager : MonoBehaviour
     
     void OnSleepButtonClicked()
     {
+        SFXManager.Instance?.PlayButton();
         if (duck != null)
         {
             if (isDuckSleeping)
@@ -431,6 +435,7 @@ public class UIManager : MonoBehaviour
     
     void OnSimulateTimeButtonClicked(float hours)
     {
+        SFXManager.Instance?.PlayButton();
         if (duck != null)
         {
             duck.SimulateTime(hours);
