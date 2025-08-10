@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 3
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - Background
+  - DuckUI
+  - MiniGames
+  - GameOver
+  - PostProcessing
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 3664171599
+    locked: 0
+  - name: Duck
+    uniqueID: 3488347469
+    locked: 0
+  - name: MiniGames
+    uniqueID: 302522817
+    locked: 0
+  - name: GameOver
+    uniqueID: 4083040999
+    locked: 0
+  m_RenderingLayers:
+  - Default
