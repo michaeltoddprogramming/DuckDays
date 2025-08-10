@@ -137,7 +137,7 @@ public class FeedingMiniGame : MonoBehaviour
             float x = Random.Range(-gameAreaWidth * 0.5f, gameAreaWidth * 0.5f);
             Vector3 spawnPos = new Vector3(x, topY, 0);
 
-            GameObject prefab = Random.value < 0.8f ? goodFoodPrefab : badFoodPrefab;
+            GameObject prefab = Random.value < 0.5f ? goodFoodPrefab : badFoodPrefab;
             GameObject food = Instantiate(prefab, spawnPos, Quaternion.identity, spawnArea); // world position
 
             if (!food.TryGetComponent<Collider2D>(out var col)) col = food.AddComponent<BoxCollider2D>();
@@ -174,7 +174,7 @@ public class FeedingMiniGame : MonoBehaviour
 
     void UpdateScoreUI()
     {
-        if (scoreText) scoreText.text = $"Score: {score}";
+        if (scoreText) scoreText.text = $"{score}";
     }
 
     public void EndGame()

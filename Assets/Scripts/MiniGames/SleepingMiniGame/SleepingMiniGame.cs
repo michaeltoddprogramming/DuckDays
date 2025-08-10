@@ -18,6 +18,7 @@ public class SleepingMiniGame : MonoBehaviour
     [Header("Audio")]
     public AudioClip distractionSound;
     public AudioClip clickSound;
+    public AudioClip distractionHitSound; // <-- Add this line
     
     private AudioSource audioSource;
     private DuckController duck;
@@ -264,8 +265,13 @@ public class SleepingMiniGame : MonoBehaviour
                             distractionsMissed++;
                             sleepQuality = Mathf.Max(0f, sleepQuality - wakeAmount);
                             Debug.Log($"Distraction reached duck! Sleep quality now: {sleepQuality:P0}");
+
+                            // Play hit SFX
+                            if (distractionHitSound && audioSource)
+                                audioSource.PlayOneShot(distractionHitSound, 0.7f);
+
                             distraction.SetActive(false);
-                            
+
                             // If sleep quality got too low, wake up duck
                             if (sleepQuality <= 0)
                             {

@@ -715,8 +715,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 198.04398}
-  m_LocalScale: {x: 22.004889, y: 22.004889, z: 22.004889}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 11.7, y: 11.7, z: 11.7}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1247892288}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1825,6 +1825,7 @@ MonoBehaviour:
   duckTarget: {fileID: 1792250941}
   distractionSound: {fileID: 8300000, guid: 72127805eb2bc4e7fbf2e02eca266cfa, type: 3}
   clickSound: {fileID: 8300000, guid: 2c5292ba5cf254919a6b9e2b18e04f49, type: 3}
+  distractionHitSound: {fileID: 8300000, guid: df729d213c4be44a9b55cd109f5cd4f9, type: 3}
 --- !u!4 &593074065
 Transform:
   m_ObjectHideFlags: 0
@@ -2133,8 +2134,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7919194353434859991, guid: b35fcaa46fa9f3e49b71c103f69df698, type: 3}
-  m_Type: 0
+  m_Sprite: {fileID: -1955448553306655712, guid: 103ed4397ca7479479873ab55626ff41, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -4669,8 +4670,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 6
-  m_fontSizeBase: 6
+  m_fontSize: 10
+  m_fontSizeBase: 10
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4679,11 +4680,11 @@ MonoBehaviour:
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
-  m_characterSpacing: 0
-  m_wordSpacing: 0
-  m_lineSpacing: 0
+  m_characterSpacing: 1
+  m_wordSpacing: 5
+  m_lineSpacing: 25
   m_lineSpacingMax: 0
-  m_paragraphSpacing: 0
+  m_paragraphSpacing: 25
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
@@ -4769,8 +4770,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 198.04398}
-  m_LocalScale: {x: 22.004889, y: 22.004889, z: 22.004889}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 22.3, y: 22.3, z: 22.3}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1247892288}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -4818,7 +4819,7 @@ SpriteRenderer:
   m_SortingLayerID: -806619827
   m_SortingLayer: 2
   m_SortingOrder: 0
-  m_Sprite: {fileID: 6674386295937086461, guid: 7abd59d488ec3484089d5f418816dbdb, type: 3}
+  m_Sprite: {fileID: 21300000, guid: ee93dcd3dfc9c3242b243fa7c49a506e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -4880,7 +4881,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2.22, y: 2.56}
+    oldSize: {x: 1, y: 1}
     newSize: {x: 2.22, y: 2.56}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -5181,15 +5182,15 @@ MonoBehaviour:
     decayRate: 4
   health:
     name: Health
-    value: 50
+    value: 100
     decayRate: 1
   feedKey: 102
   playKey: 112
   sleepKey: 115
   minBlinkTime: 3
   maxBlinkTime: 6
-  minQuackInterval: 5
-  maxQuackInterval: 10
+  minQuackInterval: 3
+  maxQuackInterval: 8
 --- !u!82 &1792250934
 AudioSource:
   m_ObjectHideFlags: 0
@@ -5429,8 +5430,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 198.04398}
-  m_LocalScale: {x: 22.004889, y: 22.004889, z: 22.004889}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 10.7, y: 10.7, z: 10.7}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1247892288}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
