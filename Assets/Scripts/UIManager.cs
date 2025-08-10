@@ -395,7 +395,7 @@ public class UIManager : MonoBehaviour
     }
     
     // Pretty status with backdrop sizing + fade
-    void UpdateStatusText(string message)
+    public void UpdateStatusText(string message)
     {
         if (statusText == null || statusRoot == null) return;
 
