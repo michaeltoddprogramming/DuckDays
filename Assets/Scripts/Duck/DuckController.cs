@@ -26,6 +26,7 @@ public class DuckController : MonoBehaviour
     private DuckAnimator duckAnimator;
     private DuckAudio duckAudio;
     private BackgroundController background;
+    private SleepingMiniGame sleepMiniGame; // Add this field at the top of the DuckController class
 
     private const float LowNeed = 30f;
     private const float HighNeed = 70f;
@@ -42,6 +43,7 @@ public class DuckController : MonoBehaviour
         duckAnimator = GetComponent<DuckAnimator>();
         duckAudio = GetComponent<DuckAudio>();
         background = FindFirstObjectByType<BackgroundController>();
+        sleepMiniGame = FindFirstObjectByType<SleepingMiniGame>();
 
         // Initialize the previous health
         previousHealth = health.value;
@@ -50,6 +52,16 @@ public class DuckController : MonoBehaviour
         ResetQuackTimer();
 
         quackTimer = maxQuackInterval + 1f; // Avoid quacking immediately on start
+
+        // REMOVE THESE LINES:
+        // if (simulate1HourButton) simulate1HourButton.onClick.AddListener(() => OnSimulateTimeButtonClicked(1f));
+        // if (simulate20HoursButton) simulate20HourButton.onClick.AddListener(() => OnSimulateTimeButtonClicked(20f));
+
+        // REMOVE THESE LINES:
+        // UpdateNeedBars();
+        // UpdateTimeDisplay();
+        // UpdateSleepButton();
+        // UpdateFeedButtonState();
     }
 
     void Update()
@@ -86,12 +98,8 @@ public class DuckController : MonoBehaviour
         }
         else
         {
-            // Energy recovery during sleep (continuous)
-            energy.Recover(10f * deltaHours); // Gradual recovery while sleeping
-            
-            // Very small health recovery during sleep if not too unhealthy
-            if (health.value > 30f)
-                health.Recover(1f * deltaHours);
+            // REMOVE passive energy/health gain during sleep!
+            // Energy and health are now only recovered by the SleepingMiniGame result.
         }
 
         // Calculate average needs for health regeneration
@@ -105,8 +113,8 @@ public class DuckController : MonoBehaviour
             health.Recover(regenerationRate * deltaHours);
             
             // Optional: Debug info to see when healing is happening
-            if (health.value < 100f && deltaHours > 0)
-                Debug.Log($"Duck healing: +{regenerationRate * deltaHours:F2} (avg needs: {avgNeeds:F1}%)");
+            // if (health.value < 100f && deltaHours > 0)
+                // Debug.Log($"Duck healing: +{regenerationRate * deltaHours:F2} (avg needs: {avgNeeds:F1}%)");
         }
 
         // Night time gives a small energy boost, but only if not sleeping
@@ -123,21 +131,21 @@ public class DuckController : MonoBehaviour
         if (hunger.value <= 0)
         {
             health.Decay(8f * deltaHours);
-            if (Random.value < 0.05f * deltaHours)
+            if (!duckAnimator.IsSleeping && Random.value < 0.05f * deltaHours)
                 duckAnimator.TakeDamage();
         }
         
         if (happiness.value <= 0)
         {
             health.Decay(5f * deltaHours);
-            if (Random.value < 0.03f * deltaHours)
+            if (!duckAnimator.IsSleeping && Random.value < 0.03f * deltaHours)
                 duckAnimator.TakeDamage();
         }
         
         if (energy.value <= 0 && !isSleeping) // Only check when not sleeping
         {
             health.Decay(7f * deltaHours);
-            if (Random.value < 0.04f * deltaHours)
+            if (!duckAnimator.IsSleeping && Random.value < 0.04f * deltaHours)
                 duckAnimator.TakeDamage();
         }
 
@@ -176,13 +184,14 @@ public class DuckController : MonoBehaviour
         // Calculate health change
         float healthChange = health.value - previousHealth;
         
-        // If ANY health was lost and cooldown is over
-        if (healthChange < 0 && damageAnimCooldown <= 0)
+        // Don't play damage animation if duck is sleeping
+        bool isSleeping = duckAnimator.IsSleeping;
+        
+        // If ANY health was lost and cooldown is over and not sleeping
+        if (healthChange < 0 && damageAnimCooldown <= 0 && !isSleeping)
         {
             // MUCH higher chance to play animation - almost guaranteed on any health loss
             float chance = Mathf.Min(1.0f, -healthChange * 2f); // 100% chance with 0.5 health loss
-            
-            // Debug.Log($"Health decreased by {-healthChange}, chance to play damage: {chance}");
             
             if (Random.value < chance)
             {
@@ -198,20 +207,27 @@ public class DuckController : MonoBehaviour
 
     void HandleTimers()
     {
-        float blinkSpeed = energy.value < LowNeed ? 0.5f : 1f;
-        blinkTimer -= Time.deltaTime * blinkSpeed;
-        if (blinkTimer <= 0f)
+        // Check if duck is sleeping - don't blink/quack during sleep
+        bool isSleeping = duckAnimator.IsSleeping;
+        
+        // Only handle blinking and quacking when awake
+        if (!isSleeping)
         {
-            duckAnimator.Blink();
-            ResetBlinkTimer();
-        }
+            float blinkSpeed = energy.value < LowNeed ? 0.5f : 1f;
+            blinkTimer -= Time.deltaTime * blinkSpeed;
+            if (blinkTimer <= 0f)
+            {
+                duckAnimator.Blink();
+                ResetBlinkTimer();
+            }
 
-        quackTimer -= Time.deltaTime * GetQuackModifier();
-        if (quackTimer <= 0f)
-        {
-            duckAudio.PlayRandomQuack();
-            duckAnimator.Quack();
-            ResetQuackTimer();
+            quackTimer -= Time.deltaTime * GetQuackModifier();
+            if (quackTimer <= 0f)
+            {
+                duckAudio.PlayRandomQuack();
+                duckAnimator.Quack();
+                ResetQuackTimer();
+            }
         }
     }
 
@@ -262,13 +278,15 @@ public class DuckController : MonoBehaviour
 
     public void Sleep()
     {
-        energy.Recover(40f);
-        
-        if (health.value > 30f)
-            health.Recover(5f);
-            
         duckAnimator.SetSleep();
         DebugStatus("Slept");
+        
+        // Directly start the sleep mini-game when duck sleeps
+        if (sleepMiniGame != null)
+        {
+            Debug.Log("Duck Sleep method directly starting mini-game");
+            sleepMiniGame.StartSleeping();
+        }
         
         if (GameManager.Instance != null)
         {
@@ -337,5 +355,20 @@ public class DuckController : MonoBehaviour
 
         // stop duck updates
         enabled = false;
+    }
+
+    // Add this method to the DuckController class:
+    public bool IsInCriticalState()
+    {
+        // Check if animator exists and if the duck is in any critical state
+        if (DuckAnimator != null && DuckAnimator.animator != null)
+        {
+            
+            // Can add other critical states here
+            // For now, just check if duck is dead as a fallback
+            if (DuckAnimator.animator.GetBool("IsDead"))
+                return true;
+        }
+        return false;
     }
 }

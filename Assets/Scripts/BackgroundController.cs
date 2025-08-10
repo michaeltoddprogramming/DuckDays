@@ -18,14 +18,20 @@ public class BackgroundController : MonoBehaviour
     public float eveningStart = 18f;
     public float nightStart = 22f;
 
-    // Add this field
     public int daysPassed = 0;
 
     private SpriteRenderer spriteRenderer;
 
     void Awake()
     {
+        // Singleton pattern to persist time across scenes
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
+        DontDestroyOnLoad(gameObject); // Persist across scenes
     }
 
     void Start()
@@ -46,7 +52,7 @@ public class BackgroundController : MonoBehaviour
         if (currentTime >= 24f)
         {
             currentTime = 0f;
-            // optionally increment daysPassed if you track it here
+            daysPassed++;
         }
 
         UpdateBackground();
@@ -54,6 +60,8 @@ public class BackgroundController : MonoBehaviour
 
     void UpdateBackground()
     {
+        if (!spriteRenderer)
+            spriteRenderer = GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = GetSpriteForTime(currentTime);
     }
 

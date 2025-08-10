@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
+using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
@@ -56,6 +58,10 @@ public class UIManager : MonoBehaviour
     public Image         statusBackdrop; // optional; added if missing
     public Vector2       statusPadding = new Vector2(8, 4);
 
+    [Header("Sleep Mini-Game")]
+    public SleepingMiniGame sleepMiniGame;   // Assign in inspector
+    private bool nightCheckStarted = false;
+
     void Awake()
     {
         // Cache scene refs
@@ -70,6 +76,13 @@ public class UIManager : MonoBehaviour
 
     void OnEnable()
     {
+        // Start checking for night time
+        if (!nightCheckStarted)
+        {
+            StartCoroutine(CheckNightTime());
+        }
+        
+        // Also listen to token changes if needed
         if (TokenManager.Instance != null)
             TokenManager.Instance.TokensChanged += UpdateFeedButtonState;
 
@@ -86,14 +99,14 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        // Set up button click events
-        if (feedButton) feedButton.onClick.AddListener(OnFeedButtonClicked);
-        if (playButton) playButton.onClick.AddListener(OnPlayButtonClicked);
-        if (sleepButton) sleepButton.onClick.AddListener(OnSleepButtonClicked);
-        if (feedMiniGameButton) feedMiniGameButton.onClick.AddListener(StartFeedingGame);
+        // REMOVE these lines:
+        // if (feedButton) feedButton.onClick.AddListener(OnFeedButtonClicked);
+        // if (playButton) playButton.onClick.AddListener(OnPlayButtonClicked);
+        // if (sleepButton) sleepButton.onClick.AddListener(OnSleepButtonClicked);
+        // if (feedMiniGameButton) feedMiniGameButton.onClick.AddListener(StartFeedingGame);
 
-        if (simulate1HourButton) simulate1HourButton.onClick.AddListener(() => OnSimulateTimeButtonClicked(1f));
-        if (simulate20HoursButton) simulate20HoursButton.onClick.AddListener(() => OnSimulateTimeButtonClicked(20f));
+        // if (simulate1HourButton) simulate1HourButton.onClick.AddListener(() => OnSimulateTimeButtonClicked(1f));
+        // if (simulate20HoursButton) simulate20HourButton.onClick.AddListener(() => OnSimulateTimeButtonClicked(20f));
 
         // Initial update of UI
         UpdateNeedBars();
@@ -160,25 +173,22 @@ public class UIManager : MonoBehaviour
     {
         if (feedButton)
         {
-            feedButton.onClick.RemoveListener(OnFeedButtonClicked);
+            feedButton.onClick.RemoveAllListeners();
             feedButton.onClick.AddListener(OnFeedButtonClicked);
         }
-
         if (feedMiniGameButton)
         {
             feedMiniGameButton.onClick.RemoveAllListeners();
             feedMiniGameButton.onClick.AddListener(StartFeedingGame);
         }
-
         if (playButton)
         {
-            playButton.onClick.RemoveListener(OnPlayButtonClicked);
+            playButton.onClick.RemoveAllListeners();
             playButton.onClick.AddListener(OnPlayButtonClicked);
         }
-
         if (sleepButton)
         {
-            sleepButton.onClick.RemoveListener(OnSleepButtonClicked);
+            sleepButton.onClick.RemoveAllListeners();
             sleepButton.onClick.AddListener(OnSleepButtonClicked);
         }
     }
@@ -266,38 +276,59 @@ public class UIManager : MonoBehaviour
     {
         if (feedButton == null) return;
 
-        // Always allow clicking FEED; clicking with 0 tokens will open the mini-game
         bool canClick = duck != null && (GameManager.Instance == null || !GameManager.Instance.isGameOver);
         feedButton.interactable = canClick;
 
         int tokenCount = TokenManager.Instance ? TokenManager.Instance.GetCount("feed") : 0;
 
-        // Optional: update the FEED button label to show state
         if (feedButtonText != null)
             feedButtonText.text = tokenCount > 0 ? $"FEED ({tokenCount})" : "EARN FEED";
 
-        if (statusText)
+        // Only update statusText if it is empty or default (not after a feed)
+        if (statusText && string.IsNullOrEmpty(statusText.text))
+        {
             statusText.text = tokenCount > 0
                 ? "Tap FEED to spend a token"
                 : "No feed tokens – playing the Feeding game will earn tokens!";
+        }
     }
 
     void OnFeedButtonClicked()
     {
-        Debug.Log("[UIManager] FEED clicked");
-        if (duck == null) return;
+        if (duck == null || feedButton == null)
+            return;
 
-        if (TokenManager.Instance != null && TokenManager.Instance.UseToken("feed"))
+        int tokenCount = TokenManager.Instance != null ? TokenManager.Instance.feedTokens.count : 0;
+        if (tokenCount > 0)
         {
-            duck.Feed();
-            if (statusText) statusText.text = "Fed using a token!";
+            if (TokenManager.Instance.UseToken("feed"))
+            {
+                duck.Feed();
+                UpdateStatusText("Fed using 1 token!");
+            }
+            else
+            {
+                UpdateStatusText("No tokens available!");
+            }
         }
         else
         {
             StartFeedingGame();
+            UpdateStatusText("No tokens! Play the Feeding Game to earn tokens.");
         }
 
         UpdateFeedButtonState();
+
+        // Prevent double-clicks
+        feedButton.interactable = false;
+        StartCoroutine(ReenableFeedButton());
+    }
+
+    private IEnumerator ReenableFeedButton()
+    {
+        yield return new WaitForSeconds(0.3f);
+        if (feedButton != null)
+            feedButton.interactable = true;
     }
 
     void StartFeedingGame()
@@ -325,15 +356,31 @@ public class UIManager : MonoBehaviour
         {
             if (isDuckSleeping)
             {
-                // Duck is already sleeping, so wake it up
-                duck.DuckAnimator.WakeUp();
-                UpdateStatusText("Duck woke up!");
+                // Wake up the duck
+                duck.WakeUp();
+                
+                // Stop the sleep mini-game if it's running
+                if (sleepMiniGame != null)
+                {
+                    sleepMiniGame.StopSleeping(true);
+                }
             }
             else
             {
-                // Duck is awake, so put it to sleep
+                // Put the duck to sleep
                 duck.Sleep();
-                UpdateStatusText("Duck is sleeping!");
+                
+                // If it's night time, start the mini-game
+                if (background != null)
+                {
+                    bool isNightTime = (background.currentTime >= background.nightStart || 
+                                       background.currentTime < background.morningStart);
+                                       
+                    if (isNightTime && sleepMiniGame != null)
+                    {
+                        sleepMiniGame.StartSleeping();
+                    }
+                }
             }
         }
     }
@@ -404,5 +451,66 @@ public class UIManager : MonoBehaviour
         // Removed: temporary color flash on the fill
         // var fillImage = bar.fillRect.GetComponent<Image>();
         // ...
+    }
+
+    IEnumerator CheckNightTime()
+    {
+        nightCheckStarted = true;
+        bool wasNightTime = false;
+        
+        while (gameObject.activeInHierarchy)
+        {
+            // Check if it's night time
+            bool isNightTime = (background != null) && 
+                          (background.currentTime >= background.nightStart || 
+                           background.currentTime < background.morningStart);
+        
+            // Night just started - put duck to sleep automatically
+            if (isNightTime && !wasNightTime && duck != null)
+            {
+                // Don't auto-sleep if duck is taking damage or other critical states
+                if (!duck.IsInCriticalState())
+                {
+                    Debug.Log("Night time - auto sleeping duck");
+                    duck.Sleep(); // Put duck to sleep
+                    
+                    // Start the sleep mini-game
+                    if (sleepMiniGame != null)
+                    {
+                        sleepMiniGame.StartSleeping();
+                    }
+                }
+            }
+            // Morning just arrived - wake up the duck
+            else if (!isNightTime && wasNightTime && duck != null && duck.DuckAnimator.IsSleeping)
+            {
+                Debug.Log("Morning time - auto waking duck");
+                duck.WakeUp();
+            }
+            
+            wasNightTime = isNightTime;
+            
+            // If it's night and duck is sleeping, ensure mini-game is running
+            if (isNightTime && duck != null && duck.DuckAnimator != null && duck.DuckAnimator.IsSleeping)
+            {
+                if (sleepMiniGame != null)
+                {
+                    sleepMiniGame.StartSleeping();
+                }
+            }
+            
+            yield return new WaitForSeconds(1.0f);
+        }
+        
+        nightCheckStarted = false;
+    }
+
+    // Add this method if not present
+    public void ShowFeedingMiniGameResult(int tokensEarned)
+    {
+        if (tokensEarned > 0)
+            UpdateStatusText($"You earned {tokensEarned} feed token{(tokensEarned > 1 ? "s" : "")}! Use tokens to feed your duck.");
+        else
+            UpdateStatusText("No tokens earned. Try again!");
     }
 }

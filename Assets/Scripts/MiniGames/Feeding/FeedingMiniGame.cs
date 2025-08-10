@@ -58,7 +58,7 @@ public class FeedingMiniGame : MonoBehaviour
         if (timeSlider) { timeSlider.maxValue = gameDuration; timeSlider.value = gameDuration; }
         UpdateScoreUI();
 
-        if (duckPlayer) duckPlayer.transform.localPosition = new Vector3(0, -3.5f, 0);
+        if (duckPlayer) duckPlayer.transform.localPosition = new Vector3(0, -2.5f, 0); // was -3.5f
 
         if (spawnRoutine != null) StopCoroutine(spawnRoutine);
         spawnRoutine = StartCoroutine(SpawnFood());
@@ -107,7 +107,7 @@ public class FeedingMiniGame : MonoBehaviour
             }
             if (duckSpriteRenderer && moveX != 0f)
             {
-                duckSpriteRenderer.flipX = moveX < 0f;
+                duckSpriteRenderer.flipX = moveX > 0f;
             }
 
             // Walk SFX (play every 0.4s while moving)
@@ -185,9 +185,10 @@ public class FeedingMiniGame : MonoBehaviour
         if (spawnRoutine != null) StopCoroutine(spawnRoutine);
 
         // Award FEED tokens (1 per 50 score)
+        int tokens = 0;
         if (TokenManager.Instance != null)
         {
-            int tokens = Mathf.Max(0, Mathf.FloorToInt(score / 50f));
+            tokens = Mathf.Max(0, Mathf.FloorToInt(score / 50f));
             if (tokens > 0) TokenManager.Instance.AddTokens("feed", tokens);
         }
 
@@ -200,7 +201,19 @@ public class FeedingMiniGame : MonoBehaviour
         // Stop background music
         if (musicSource) musicSource.Stop();
 
-        // Go back to Main
-        GameManager.Instance?.ReturnToMainScene();
+        // Return to main scene
+        if (GameManager.Instance != null)
+            GameManager.Instance.ReturnToMainScene();
+
+        // Show result in UI when back in main scene
+        StartCoroutine(ShowResultAfterReturn(tokens));
+    }
+
+    private IEnumerator ShowResultAfterReturn(int tokens)
+    {
+        yield return new WaitForSeconds(0.5f); // Wait for scene to load
+        var ui = FindFirstObjectByType<UIManager>();
+        if (ui != null)
+            ui.ShowFeedingMiniGameResult(tokens);
     }
 }
